@@ -22,13 +22,14 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(path: "/Users/holgerkrupp/Developer/HowLongToBeatSwift")
+        .package(url: "https://github.com/holgerkrupp/HowLongToBeatSwift", .upToNextMajor(from: "0.0.1")),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "GameCollectorAPI"),
-
+            name: "GameCollectorAPI",
+            dependencies: ["HowLongToBeatSwift"]
+        )
     ]
 )

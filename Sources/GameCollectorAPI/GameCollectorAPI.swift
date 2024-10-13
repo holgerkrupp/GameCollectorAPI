@@ -44,8 +44,7 @@ actor GCAPIConnector {
                 return playtimes
                 
                 
-                
-            default:
+                               default:
                 return nil
                 //     print((response as? HTTPURLResponse)?.statusCode ?? "??")
             }
