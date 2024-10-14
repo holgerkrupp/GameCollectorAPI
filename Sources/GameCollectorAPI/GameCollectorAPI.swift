@@ -4,7 +4,7 @@
 import Foundation
 import HowLongToBeatSwift
 
-actor GCAPIConnector {
+class GCAPIConnector {
     
     
     let APIkey:String
@@ -55,20 +55,11 @@ actor GCAPIConnector {
         
     }
     
-    func push(playtimes: [HowLongToBeatGame]) async{
+    func push(playtimes: [[String: Any]]) async{
         
  
-        var times : [[String: Any]] = []
-        for game in playtimes {
-            
-            var gameDict = game.dict()
-            gameDict["IGDBid"] = self.sourceID ?? ""
-            times.append(gameDict)
-        }
-        
-        
         do{
-            let jsonData = try JSONSerialization.data(withJSONObject: times, options: .prettyPrinted)
+            let jsonData = try JSONSerialization.data(withJSONObject: playtimes, options: .prettyPrinted)
             let jsonString = String(data: jsonData, encoding: .utf8)!
             dump(jsonString)
             
@@ -108,3 +99,4 @@ actor GCAPIConnector {
                      
     
 }
+
