@@ -13,11 +13,11 @@ public actor GCAPIconnector {
     
     let endpoints = ["playtimes"]
     
-    init(apikey: String) {
+    public  init(apikey: String) {
         APIkey = apikey
     }
     
-    func getPlaytimes(igdbID: String) async -> [GCPlaytimes]?{
+    public func getPlaytimes(igdbID: String) async -> [GCPlaytimes]?{
         print("getPlaytimes")
         var APIurl = URL(string: "https://levelcomplete.de/api/v3/playtimes")!
         let APIkey = "4wcWji4sQqLg2QXFuFyjiaThs3sasdnJxeyZMMrA8tJXwJ3Q4umtNN7Gfna3DTp3GY"
@@ -55,7 +55,7 @@ public actor GCAPIconnector {
         
     }
     
-    func push(playtimes: [[String: Any]]) async{
+    public func push(playtimes: [[String: Any]]) async{
         
  
         do{
