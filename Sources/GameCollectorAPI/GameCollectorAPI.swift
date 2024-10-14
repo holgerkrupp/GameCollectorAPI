@@ -4,7 +4,7 @@
 import Foundation
 import HowLongToBeatSwift
 
-actor GameCollectorAPI {
+actor GCAPIconnector {
     
     
     let APIkey:String
