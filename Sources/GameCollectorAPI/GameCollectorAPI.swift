@@ -55,7 +55,7 @@ public actor GCAPIconnector {
         
     }
     
-    public func push(playtimes: [[String: Any]]) async{
+    public func push(playtimes: [[String: Any]]) async -> Bool{
         
  
         do{
@@ -87,12 +87,15 @@ public actor GCAPIconnector {
                 default:
                     print((response as? HTTPURLResponse)?.statusCode ?? "??")
                 }
+                return true
             }catch{
                 print(error)
+                return true
             }
             
         }catch{
             print(error)
+            return true
         }
     }
                      
