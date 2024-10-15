@@ -8,7 +8,7 @@ public actor GCAPIconnector {
     
     
     let APIkey:String
-    let APIurl = URL(string: "https://levelcomplete.de/api/v3/")
+    let APIbaseURL = URL(string: "https://levelcomplete.de/api/v3/")
     
     
     let endpoints = ["playtimes"]
@@ -20,9 +20,6 @@ public actor GCAPIconnector {
     public func getPlaytimes(igdbID: String) async -> [GCPlaytimes]?{
         print("getPlaytimes")
         var APIurl = URL(string: "https://levelcomplete.de/api/v3/playtimes")!
-        let APIkey = "4wcWji4sQqLg2QXFuFyjiaThs3sasdnJxeyZMMrA8tJXwJ3Q4umtNN7Gfna3DTp3GY"
-        
-        APIurl.append(path: igdbID)
         
         var request = URLRequest(url: APIurl)
         request.httpMethod = "GET"
@@ -64,7 +61,7 @@ public actor GCAPIconnector {
             dump(jsonString)
             
             let APIurl = URL(string: "https://levelcomplete.de/api/v3/playtimes")!
-            let APIkey = "4wcWji4sQqLg2QXFuFyjiaThs3sasdnJxeyZMMrA8tJXwJ3Q4umtNN7Gfna3DTp3GY"
+   
             
             var request = URLRequest(url: APIurl)
             request.httpMethod = "POST"

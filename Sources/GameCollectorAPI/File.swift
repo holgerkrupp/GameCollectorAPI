@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct GCPlaytimes: Codable {
+public struct GCPlaytimes: Codable, Sendable {
     var HLTBid: Int
     var IGDBid: Int
     var name: String
