@@ -8,14 +8,14 @@
 import Foundation
 
 public struct GCPlaytimes: Codable, Sendable {
-    var HLTBid: Int
-    var IGDBid: Int
-    var name: String
-     var playtimes: [Playtime]
+    public var HLTBid: Int
+    public var IGDBid: Int
+    public var name: String
+    public var playtimes: [Playtime]
     
     public struct Playtime: Codable, Sendable {
-        var Time: Int
-        var type: String
-        var date: String
+        public var Time: Int
+        public var type: String
+        public var date: String
     }
     }
