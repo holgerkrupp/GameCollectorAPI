@@ -12,7 +12,8 @@ public actor GCAPIconnector {
     
     
     let endpoints = [
-        "playtimes": "playtimes"
+        "playtimes": "playtimes",
+        "ean": "ean"
     ]
     
     public  init(apikey: String) {
@@ -24,9 +25,11 @@ public actor GCAPIconnector {
         guard let endpoint = endpoints["playtimes"],
               let APIurl = URL(string: endpoint, relativeTo: APIbaseURL) else {
             print("Invalid URL")
+            
             return nil
         }
-        var request = URLRequest(url: APIurl)
+        let requestURL = APIurl.appending(path: igdbID)
+        var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
         request.addValue(APIkey, forHTTPHeaderField: "APIkey")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -102,6 +105,55 @@ public actor GCAPIconnector {
             print(error)
             return true
         }
+    }
+    
+    public func getGameInfo(EAN: String) async -> [BasicGame]?{
+        
+        guard let endpoint = endpoints["ean"],
+              let APIurl = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            print("Invalid URL")
+            return nil
+        }
+        
+        let requestURL = APIurl.appending(path: EAN)
+            
+    
+        var request = URLRequest(url: requestURL)
+            request.httpMethod = "GET"
+            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+         
+            
+            
+            let session = URLSession.shared
+
+        do{
+            let (data, response) = try await session.data(for: request)
+            //     print((response as? HTTPURLResponse)?.allHeaderFields ?? "")
+            print(String(decoding: data, as: UTF8.self))
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 200:
+                print("ok")
+                let decoder = JSONDecoder()
+                let GameInfo = try decoder.decode([BasicGame].self, from: data)
+                // let gamemodes = parsedData.playTimes
+                dump(GameInfo)
+                return GameInfo
+                
+                
+            default:
+                return nil
+                //     print((response as? HTTPURLResponse)?.statusCode ?? "??")
+            }
+        }catch{
+            print(error)
+            return nil
+        }
+        
+        
+        
     }
                      
                      
