@@ -23,14 +23,14 @@ public struct GCPlaytimes: Codable, Sendable {
 
 
 public class BasicGame: NSObject, Codable{
-    var name: String?
-    var source: String?
-    var sourceID: String?
+    public var name: String?
+    public var source: String?
+    public var sourceID: String?
     
-    var EAN: String?
-    var Platform: String?
+    public var EAN: String?
+    public var Platform: String?
     
-    var Cover: URL?
+    public  var Cover: URL?
     
     enum CodingKeys: CodingKey{
         case name, sourceID, source, EAN, platform, cover
