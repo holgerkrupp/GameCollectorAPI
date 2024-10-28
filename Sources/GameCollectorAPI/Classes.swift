@@ -22,7 +22,7 @@ public struct GCPlaytimes: Codable, Sendable {
 
 
 
-public class BasicGame: NSObject, Codable{
+public struct BasicGame:  Codable, Sendable{
     public var name: String?
     public var source: String?
     public var sourceID: String?
@@ -36,7 +36,7 @@ public class BasicGame: NSObject, Codable{
         case name, sourceID, source, EAN, platform, cover
     }
     
-    required public init(from decoder: Decoder) throws {
+     public init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self){
             name = try? container.decode(String.self, forKey: .name)
             source = try? container.decode(String?.self, forKey: .source)
