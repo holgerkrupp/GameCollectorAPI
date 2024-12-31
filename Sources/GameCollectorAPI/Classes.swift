@@ -8,7 +8,7 @@
 import Foundation
 
 public struct GCPlaytimes: Codable, Sendable {
-    public var HLTBid: Int
+    public var id: Int
     public var IGDBid: Int
     public var name: String
     public var playtimes: [Playtime]
@@ -20,7 +20,10 @@ public struct GCPlaytimes: Codable, Sendable {
     }
     }
 
-
+public enum collectiontype: Hashable, Sendable {
+    case collection
+    case wishlist
+}
 
 public struct BasicGame:  Codable, Sendable{
     public var name: String?
@@ -29,12 +32,17 @@ public struct BasicGame:  Codable, Sendable{
     
     public var EAN: String?
     public var Platform: String?
+    public var Region: Int?
     
     public  var Cover: URL?
     
+    public var AddingTo: collectiontype?
+    
     enum CodingKeys: CodingKey{
-        case name, sourceID, source, EAN, platform, cover
+        case name, sourceID, source, EAN, platform, cover, region
     }
+    
+    public init(){}
     
      public init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self){
@@ -44,9 +52,17 @@ public struct BasicGame:  Codable, Sendable{
             if sourceID == nil {
                 sourceID = try? container.decode(String.self, forKey: .sourceID)
             }
-            EAN = try? container.decode(String?.self, forKey: .EAN)
+            EAN = try? String(container.decode(Int.self, forKey: .EAN))
+            if EAN == nil {
+                EAN = try? container.decode(String.self, forKey: .EAN)
+            }
             Platform = try? container.decode(String.self, forKey: .platform)
             Cover = try? container.decode(URL.self, forKey: .cover)
+            
+            Region = try? container.decode(Int.self, forKey: .region)
+            if Region == nil {
+                Region = try? Int(container.decode(String.self, forKey: .region))
+            }
         }
         
     }
