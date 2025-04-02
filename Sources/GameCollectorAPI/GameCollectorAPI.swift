@@ -82,6 +82,9 @@ public actor GCAPIconnector {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
+            dump(request)
+            dump(request.allHTTPHeaderFields ?? [:])
+            dump(request.httpBody ?? Data())
             
             
             let session = URLSession.shared
