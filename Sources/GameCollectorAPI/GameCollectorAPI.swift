@@ -13,7 +13,8 @@ public actor GCAPIconnector {
     
     let endpoints = [
         "playtimes": "playtimes",
-        "ean": "ean"
+        "ean": "ean",
+        "prices": "prices"
     ]
     
     public  init(apikey: String) {
@@ -203,8 +204,164 @@ public actor GCAPIconnector {
         
         
     }
+    
+    public func getPrices(
+        releaseId: Int? = nil,
+        ean: String? = nil,
+        identifierType: String? = nil,
+        identifierValue: String? = nil,
+        condition: String? = nil,
+        region: String? = nil,
+        variant: String? = nil,
+        currency: String? = nil,
+        source: String? = nil
+    ) async -> GCReleasePricesResponse? {
+        guard let endpoint = endpoints["prices"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            return nil
+        }
+        
+        let requestURL: URL
+        if let releaseId {
+            requestURL = apiURL.appending(path: String(releaseId))
+        } else {
+            guard var components = URLComponents(url: apiURL, resolvingAgainstBaseURL: true) else {
+                return nil
+            }
+            
+            var queryItems: [URLQueryItem] = []
+            if let ean { queryItems.append(URLQueryItem(name: "ean", value: ean)) }
+            if let identifierType { queryItems.append(URLQueryItem(name: "identifierType", value: identifierType)) }
+            if let identifierValue { queryItems.append(URLQueryItem(name: "identifierValue", value: identifierValue)) }
+            if let condition { queryItems.append(URLQueryItem(name: "condition", value: condition)) }
+            if let region { queryItems.append(URLQueryItem(name: "region", value: region)) }
+            if let variant { queryItems.append(URLQueryItem(name: "variant", value: variant)) }
+            if let currency { queryItems.append(URLQueryItem(name: "currency", value: currency)) }
+            if let source { queryItems.append(URLQueryItem(name: "source", value: source)) }
+            components.queryItems = queryItems.isEmpty ? nil : queryItems
+            
+            guard let url = components.url else {
+                return nil
+            }
+            requestURL = url
+        }
+        
+        return await performPriceReadRequest(url: requestURL)
+    }
+    
+    public func getPriceHistory(
+        releaseId: Int,
+        condition: String? = nil,
+        region: String? = nil,
+        variant: String? = nil,
+        currency: String? = nil,
+        source: String? = nil
+    ) async -> GCReleasePriceHistoryResponse? {
+        guard let endpoint = endpoints["prices"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            return nil
+        }
+        
+        let historyURL = apiURL
+            .appending(path: String(releaseId))
+            .appending(path: "history")
+        
+        guard var components = URLComponents(url: historyURL, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+        
+        var queryItems: [URLQueryItem] = []
+        if let condition { queryItems.append(URLQueryItem(name: "condition", value: condition)) }
+        if let region { queryItems.append(URLQueryItem(name: "region", value: region)) }
+        if let variant { queryItems.append(URLQueryItem(name: "variant", value: variant)) }
+        if let currency { queryItems.append(URLQueryItem(name: "currency", value: currency)) }
+        if let source { queryItems.append(URLQueryItem(name: "source", value: source)) }
+        components.queryItems = queryItems.isEmpty ? nil : queryItems
+        
+        guard let requestURL = components.url else {
+            return nil
+        }
+        
+        var request = URLRequest(url: requestURL)
+        request.httpMethod = "GET"
+        request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        do{
+            let (data, response) = try await URLSession.shared.data(for: request)
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 200:
+                let decoder = JSONDecoder()
+                return try decoder.decode(GCReleasePriceHistoryResponse.self, from: data)
+            default:
+                return nil
+            }
+        }catch{
+            print(error)
+            return nil
+        }
+    }
+    
+    public func push(price: GCPriceWriteRequest) async -> GCPriceWriteResponse?{
+        return await push(prices: [price])
+    }
+    
+    public func push(prices: [GCPriceWriteRequest]) async -> GCPriceWriteResponse?{
+        guard let endpoint = endpoints["prices"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            return nil
+        }
+        
+        do{
+            let encoder = JSONEncoder()
+            let body = prices.count == 1 ? try encoder.encode(prices[0]) : try encoder.encode(prices)
+            
+            var request = URLRequest(url: apiURL)
+            request.httpMethod = "POST"
+            request.httpBody = body
+            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 201:
+                let decoder = JSONDecoder()
+                return try decoder.decode(GCPriceWriteResponse.self, from: data)
+            default:
+                print((response as? HTTPURLResponse)?.statusCode ?? "??")
+                print(String(decoding: data, as: UTF8.self))
+                return nil
+            }
+        }catch{
+            print(error)
+            return nil
+        }
+    }
+    
+    private func performPriceReadRequest(url: URL) async -> GCReleasePricesResponse? {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        do{
+            let (data, response) = try await URLSession.shared.data(for: request)
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 200:
+                let decoder = JSONDecoder()
+                return try decoder.decode(GCReleasePricesResponse.self, from: data)
+            default:
+                return nil
+            }
+        }catch{
+            print(error)
+            return nil
+        }
+    }
                      
                      
     
 }
-
