@@ -208,6 +208,7 @@ public actor GCAPIconnector {
     public func getPrices(
         releaseId: Int? = nil,
         ean: String? = nil,
+        priceChartingId: String? = nil,
         identifierType: String? = nil,
         identifierValue: String? = nil,
         condition: String? = nil,
@@ -231,6 +232,10 @@ public actor GCAPIconnector {
             
             var queryItems: [URLQueryItem] = []
             if let ean { queryItems.append(URLQueryItem(name: "ean", value: ean)) }
+            if let priceChartingId {
+                queryItems.append(URLQueryItem(name: "identifierType", value: "pricecharting"))
+                queryItems.append(URLQueryItem(name: "identifierValue", value: priceChartingId))
+            }
             if let identifierType { queryItems.append(URLQueryItem(name: "identifierType", value: identifierType)) }
             if let identifierValue { queryItems.append(URLQueryItem(name: "identifierValue", value: identifierValue)) }
             if let condition { queryItems.append(URLQueryItem(name: "condition", value: condition)) }

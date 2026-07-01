@@ -5,9 +5,16 @@ Client side to talk to the Server hosting some of Game Collectors data.
 The API now supports release-based price history with:
 
 - optional EAN-based release identification
+- optional PriceCharting-style identifier support via the legacy `items.id`
 - additional identifiers such as source ids
 - multiple price dimensions like condition, region, and variant
 - historical price tracking via `observed_at`
+
+When a release has no current entry in `release_prices`, the server can silently bootstrap it from legacy tables (`EANkeys`, `items`, `PriceGuide`) and return old `PriceGuide` values as a temporary seed response. Those fallback rows are marked with:
+
+- `source_name = "PriceGuideLegacy"`
+- `is_legacy_seed = true`
+- `observed_at = null`
 
 Base URL:
 
@@ -169,6 +176,14 @@ curl -X GET "https://levelcomplete.de/api/v3a/prices?identifierType=igdb&identif
   -H "Accept: application/json"
 ```
 
+PriceCharting-style example using the legacy `items.id`:
+
+```bash
+curl -X GET "https://levelcomplete.de/api/v3a/prices?identifierType=pricecharting&identifierValue=5" \
+  -H "APIkey: YOUR_API_KEY" \
+  -H "Accept: application/json"
+```
+
 ### Get price history
 
 `GET /prices/{releaseId}/history`
@@ -195,6 +210,7 @@ Release fields:
 
 - `releaseId`: optional internal id
 - `ean`: optional shortcut for adding an EAN identifier
+- `priceChartingId`: optional shortcut for adding a legacy `items.id` / PriceCharting-style identifier
 - `name`: optional when the release already exists
 - `platform`: optional
 - `region`: optional

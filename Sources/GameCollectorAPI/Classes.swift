@@ -54,9 +54,10 @@ public struct GCPricePoint: Codable, Sendable {
     public var source_name: String?
     public var source_item_id: String?
     public var source_url: String?
-    public var observed_at: String
+    public var observed_at: String?
     public var created_at: String?
     public var updated_at: String?
+    public var is_legacy_seed: Bool?
 }
 
 public struct GCReleasePricesResponse: Codable, Sendable {
@@ -86,6 +87,7 @@ public struct GCPriceWriteIdentifier: Codable, Sendable {
 public struct GCPriceWriteRelease: Codable, Sendable {
     public var releaseId: Int?
     public var ean: String?
+    public var priceChartingId: String?
     public var source: String?
     public var sourceID: String?
     public var igdbId: Int?
@@ -98,6 +100,7 @@ public struct GCPriceWriteRelease: Codable, Sendable {
     public init(
         releaseId: Int? = nil,
         ean: String? = nil,
+        priceChartingId: String? = nil,
         source: String? = nil,
         sourceID: String? = nil,
         igdbId: Int? = nil,
@@ -109,6 +112,7 @@ public struct GCPriceWriteRelease: Codable, Sendable {
     ) {
         self.releaseId = releaseId
         self.ean = ean
+        self.priceChartingId = priceChartingId
         self.source = source
         self.sourceID = sourceID
         self.igdbId = igdbId
