@@ -32,7 +32,7 @@ public actor GCAPIconnector {
         let requestURL = APIurl.appending(path: igdbID)
         var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
-        request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+        request.addValue(APIkey, forHTTPHeaderField: "Apikey")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         let session = URLSession.shared
@@ -79,7 +79,7 @@ public actor GCAPIconnector {
             request.httpMethod = "POST"
             request.httpBody = jsonData
             
-            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue(APIkey, forHTTPHeaderField: "Apikey")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
@@ -128,7 +128,7 @@ public actor GCAPIconnector {
             request.httpMethod = "POST"
             request.httpBody = jsonData
             
-            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue(APIkey, forHTTPHeaderField: "Apikey")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
@@ -170,7 +170,7 @@ public actor GCAPIconnector {
        
         var request = URLRequest(url: requestURL)
             request.httpMethod = "GET"
-            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue(APIkey, forHTTPHeaderField: "Apikey")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
@@ -289,7 +289,7 @@ public actor GCAPIconnector {
         
         var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
-        request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+        request.addValue(APIkey, forHTTPHeaderField: "Apikey")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
@@ -325,7 +325,7 @@ public actor GCAPIconnector {
             var request = URLRequest(url: apiURL)
             request.httpMethod = "POST"
             request.httpBody = body
-            request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+            request.addValue(APIkey, forHTTPHeaderField: "Apikey")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             
@@ -348,7 +348,7 @@ public actor GCAPIconnector {
     private func performPriceReadRequest(url: URL) async -> GCReleasePricesResponse? {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.addValue(APIkey, forHTTPHeaderField: "APIkey")
+        request.addValue(APIkey, forHTTPHeaderField: "Apikey")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
