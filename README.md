@@ -2,19 +2,40 @@ Client side to talk to the Server hosting some of Game Collectors data.
 
 ## Prices API
 
-The API now supports release-based price history with:
+Prices are stored in the server's `PriceGuide` table — the imported PriceCharting
+price guide. A "release" is one row of it, and the release id in every route is
+that row's id, which is the PriceCharting product id it was imported under.
 
-- optional EAN-based release identification
-- optional PriceCharting-style identifier support via the legacy `items.id`
-- additional identifiers such as source ids
-- multiple price dimensions like condition, region, and variant
-- historical price tracking via `observed_at`
+Releases can be looked up by:
 
-When a release has no current entry in `release_prices`, the server can silently bootstrap it from legacy tables (`EANkeys`, `items`, `PriceGuide`) and return old `PriceGuide` values as a temporary seed response. Those fallback rows are marked with:
+- EAN / UPC (`PriceGuide.upc`)
+- PriceCharting product id (`PriceGuide.id`) — send it as `priceChartingId`
+- IGDB id, resolved through `EANkeys.sourceID`, when it reaches exactly one
+  priced product
+
+Every response is marked as coming from that table:
 
 - `source_name = "PriceGuideLegacy"`
 - `is_legacy_seed = true`
 - `observed_at = null`
+
+What the table cannot hold, and how the API handles it:
+
+- **No history.** One price per condition; a write overwrites the column. There
+  is no `/history` endpoint — see below.
+- **No timestamps.** `observed_at` is always null, which also stops clients
+  treating an old import as a current price.
+- **No currency column.** The guide is in US dollars, so `USD` is the only
+  currency accepted on write, and writes in any other currency are rejected
+  rather than misfiled as dollars.
+- **Conditions are `loose`, `cib` and `new`.** `graded` is accepted and dropped.
+- **No region or variant columns.** `region_code` is derived from `consolename`,
+  which is where PriceCharting records it (`PAL …`, `JP …`).
+
+A price for a product the guide does not have yet is inserted under its
+PriceCharting product id. Without that id there is nothing to key the row on, so
+the write is skipped rather than inventing an id — every lookup here depends on
+`PriceGuide.id` meaning what PriceCharting says it means.
 
 Base URL:
 
@@ -176,33 +197,19 @@ curl -X GET "https://levelcomplete.de/api/v3a/prices?identifierType=igdb&identif
   -H "Accept: application/json"
 ```
 
-PriceCharting-style example using the legacy `items.id`:
+PriceCharting product id example:
 
 ```bash
-curl -X GET "https://levelcomplete.de/api/v3a/prices?identifierType=pricecharting&identifierValue=5" \
+curl -X GET "https://levelcomplete.de/api/v3a/prices?identifierType=pricekit&identifierValue=1964" \
   -H "APIkey: YOUR_API_KEY" \
   -H "Accept: application/json"
 ```
 
 ### Get price history
 
-`GET /prices/{releaseId}/history`
-
-Example:
-
-```bash
-curl -X GET "https://levelcomplete.de/api/v3a/prices/1234/history" \
-  -H "APIkey: YOUR_API_KEY" \
-  -H "Accept: application/json"
-```
-
-Filtered history example:
-
-```bash
-curl -X GET "https://levelcomplete.de/api/v3a/prices/1234/history?condition=cib&region=eu&variant=Player%27s%20Choice" \
-  -H "APIkey: YOUR_API_KEY" \
-  -H "Accept: application/json"
-```
+**Not supported.** `PriceGuide` keeps one price per condition rather than a
+timeline, so `GET /prices/{releaseId}/history` answers 404 and
+`getPriceHistory(...)` returns nil.
 
 ### Request shape
 
@@ -210,7 +217,7 @@ Release fields:
 
 - `releaseId`: optional internal id
 - `ean`: optional shortcut for adding an EAN identifier
-- `priceChartingId`: optional shortcut for adding a legacy `items.id` / PriceCharting-style identifier
+- `priceChartingId`: the PriceCharting product id (`PriceGuide.id`). Sent as `identifierType=pricekit`, which is the spelling PriceKit and the app use; the server also accepts `pricecharting`
 - `name`: optional when the release already exists
 - `platform`: optional
 - `region`: optional

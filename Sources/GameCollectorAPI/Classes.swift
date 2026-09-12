@@ -238,3 +238,135 @@ public struct BasicGame:  Codable, Sendable{
         
     }
 }
+
+// MARK: - DoesItPlay?
+
+/// One physical-release test published by DoesItPlay? (https://www.doesitplay.org),
+/// mirrored by the levelcomplete backend so the app doesn't have to scrape the
+/// site once per user.
+///
+/// `offline_play` and `download_required` use the site's own four/three-step
+/// scale, normalised into stable codes:
+/// - `offline_play`: `yes`, `yes_limited` ("Yes*"), `no`
+/// - `download_required`: `no`, `no_minor` ("No*"), `yes_minor` ("Yes*"), `yes`
+public struct GCDoesItPlayReport: Codable, Sendable {
+    public var id: Int?
+    public var title: String?
+    public var platform: String?
+    public var platform_code: String?
+    public var tested_on: String?
+    public var region: String?
+    public var version: String?
+    public var offline_play: String?
+    public var download_required: String?
+    public var notes: String?
+    public var cover: String?
+    public var igdb_id: Int?
+    public var source_url: String?
+    public var tested_at: String?
+    public var fetched_at: String?
+    public var updated_at: String?
+
+    public init(
+        id: Int? = nil,
+        title: String? = nil,
+        platform: String? = nil,
+        platform_code: String? = nil,
+        tested_on: String? = nil,
+        region: String? = nil,
+        version: String? = nil,
+        offline_play: String? = nil,
+        download_required: String? = nil,
+        notes: String? = nil,
+        cover: String? = nil,
+        igdb_id: Int? = nil,
+        source_url: String? = nil,
+        tested_at: String? = nil,
+        fetched_at: String? = nil,
+        updated_at: String? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.platform = platform
+        self.platform_code = platform_code
+        self.tested_on = tested_on
+        self.region = region
+        self.version = version
+        self.offline_play = offline_play
+        self.download_required = download_required
+        self.notes = notes
+        self.cover = cover
+        self.igdb_id = igdb_id
+        self.source_url = source_url
+        self.tested_at = tested_at
+        self.fetched_at = fetched_at
+        self.updated_at = updated_at
+    }
+}
+
+public struct GCDoesItPlayResponse: Codable, Sendable {
+    public var message: String?
+    public var count: Int?
+    public var source: String?
+    public var attribution: String?
+    public var results: [GCDoesItPlayReport]
+
+    public init(
+        message: String? = nil,
+        count: Int? = nil,
+        source: String? = nil,
+        attribution: String? = nil,
+        results: [GCDoesItPlayReport] = []
+    ) {
+        self.message = message
+        self.count = count
+        self.source = source
+        self.attribution = attribution
+        self.results = results
+    }
+}
+
+/// A report the app looked up itself and hands back to the server so the next
+/// client gets it from the cache instead of hitting doesitplay.org again.
+public struct GCDoesItPlayWriteRequest: Codable, Sendable {
+    public var title: String
+    public var platform: String?
+    public var platformCode: String
+    public var testedOn: String?
+    public var region: String?
+    public var version: String?
+    public var offlinePlay: String?
+    public var downloadRequired: String?
+    public var notes: String?
+    public var cover: String?
+    public var igdbId: Int?
+    public var sourceUrl: String
+
+    public init(
+        title: String,
+        platform: String? = nil,
+        platformCode: String,
+        testedOn: String? = nil,
+        region: String? = nil,
+        version: String? = nil,
+        offlinePlay: String? = nil,
+        downloadRequired: String? = nil,
+        notes: String? = nil,
+        cover: String? = nil,
+        igdbId: Int? = nil,
+        sourceUrl: String
+    ) {
+        self.title = title
+        self.platform = platform
+        self.platformCode = platformCode
+        self.testedOn = testedOn
+        self.region = region
+        self.version = version
+        self.offlinePlay = offlinePlay
+        self.downloadRequired = downloadRequired
+        self.notes = notes
+        self.cover = cover
+        self.igdbId = igdbId
+        self.sourceUrl = sourceUrl
+    }
+}

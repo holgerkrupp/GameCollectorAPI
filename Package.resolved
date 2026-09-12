@@ -1,0 +1,15 @@
+{
+  "originHash" : "3da3c028b504b7e0933ae20cd16855101653477649fbe4b9d2a29390fa3c957b",
+  "pins" : [
+    {
+      "identity" : "howlongtobeatswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/holgerkrupp/HowLongToBeatSwift",
+      "state" : {
+        "branch" : "main",
+        "revision" : "6b55f4764ad98255294f651a49fedfcb904b5014"
+      }
+    }
+  ],
+  "version" : 3
+}

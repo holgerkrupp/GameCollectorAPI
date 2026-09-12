@@ -14,7 +14,8 @@ public actor GCAPIconnector {
     let endpoints = [
         "playtimes": "playtimes",
         "ean": "ean",
-        "prices": "prices"
+        "prices": "prices",
+        "doesitplay": "doesitplay"
     ]
     
     public  init(apikey: String) {
@@ -233,7 +234,10 @@ public actor GCAPIconnector {
             var queryItems: [URLQueryItem] = []
             if let ean { queryItems.append(URLQueryItem(name: "ean", value: ean)) }
             if let priceChartingId {
-                queryItems.append(URLQueryItem(name: "identifierType", value: "pricecharting"))
+                // "pricekit" is what PriceKit and the app send for a
+                // PriceCharting product id; the server accepts both spellings,
+                // but sending the same one keeps the two clients in step.
+                queryItems.append(URLQueryItem(name: "identifierType", value: "pricekit"))
                 queryItems.append(URLQueryItem(name: "identifierValue", value: priceChartingId))
             }
             if let identifierType { queryItems.append(URLQueryItem(name: "identifierType", value: identifierType)) }
@@ -254,6 +258,10 @@ public actor GCAPIconnector {
         return await performPriceReadRequest(url: requestURL)
     }
     
+    /// Not backed by the current server: prices live in `PriceGuide`, which keeps
+    /// one value per condition rather than a timeline, so `/prices/{id}/history`
+    /// answers 404 and this returns nil.
+    @available(*, deprecated, message: "The server keeps no price history; this always returns nil.")
     public func getPriceHistory(
         releaseId: Int,
         condition: String? = nil,
@@ -345,6 +353,117 @@ public actor GCAPIconnector {
         }
     }
     
+    // MARK: - DoesItPlay?
+
+    /// Looks up the DoesItPlay? verdicts for a release.
+    ///
+    /// The backend answers from its own mirror and only falls back to
+    /// doesitplay.org when it has nothing cached (or the cache went stale), so
+    /// a client can call this freely.
+    ///
+    /// - Parameters:
+    ///   - title: the release title as the user's copy is named.
+    ///   - platformCode: DoesItPlay's platform code (`ps5`, `switch2`, `seriesx`, …).
+    ///   - region: optional rating-board hint (`PEGI`, `ESRB`, `CERO`, …) used to
+    ///     rank the matches — entries for other regions are still returned.
+    ///   - igdbID: optional IGDB game id; matches by id win over title matches.
+    ///   - refresh: ask the backend to re-check doesitplay.org even if it has a
+    ///     fresh copy. Use sparingly (user-initiated refresh only).
+    public func getDoesItPlay(
+        title: String? = nil,
+        platformCode: String? = nil,
+        region: String? = nil,
+        igdbID: String? = nil,
+        refresh: Bool = false
+    ) async -> GCDoesItPlayResponse? {
+        guard let endpoint = endpoints["doesitplay"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL),
+              var components = URLComponents(url: apiURL, resolvingAgainstBaseURL: true) else {
+            return nil
+        }
+
+        var queryItems: [URLQueryItem] = []
+        if let title { queryItems.append(URLQueryItem(name: "title", value: title)) }
+        if let platformCode { queryItems.append(URLQueryItem(name: "platform", value: platformCode)) }
+        if let region { queryItems.append(URLQueryItem(name: "region", value: region)) }
+        if let igdbID { queryItems.append(URLQueryItem(name: "igdbId", value: igdbID)) }
+        if refresh { queryItems.append(URLQueryItem(name: "refresh", value: "1")) }
+        components.queryItems = queryItems.isEmpty ? nil : queryItems
+
+        guard let requestURL = components.url else { return nil }
+        return await performDoesItPlayRequest(url: requestURL)
+    }
+
+    /// All cached DoesItPlay? tests for one IGDB game id, across platforms.
+    public func getDoesItPlay(igdbID: String) async -> GCDoesItPlayResponse? {
+        guard let endpoint = endpoints["doesitplay"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            return nil
+        }
+        return await performDoesItPlayRequest(url: apiURL.appending(path: igdbID))
+    }
+
+    /// Contributes a report the client resolved itself, so other clients can be
+    /// served from the mirror.
+    public func push(doesItPlay report: GCDoesItPlayWriteRequest) async -> GCDoesItPlayResponse? {
+        return await push(doesItPlay: [report])
+    }
+
+    public func push(doesItPlay reports: [GCDoesItPlayWriteRequest]) async -> GCDoesItPlayResponse? {
+        guard let endpoint = endpoints["doesitplay"],
+              let apiURL = URL(string: endpoint, relativeTo: APIbaseURL) else {
+            return nil
+        }
+
+        do {
+            let encoder = JSONEncoder()
+            let body = reports.count == 1 ? try encoder.encode(reports[0]) : try encoder.encode(reports)
+
+            var request = URLRequest(url: apiURL)
+            request.httpMethod = "POST"
+            request.httpBody = body
+            request.addValue(APIkey, forHTTPHeaderField: "Apikey")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 200, 201:
+                return try JSONDecoder().decode(GCDoesItPlayResponse.self, from: data)
+            default:
+                print((response as? HTTPURLResponse)?.statusCode ?? "??")
+                print(String(decoding: data, as: UTF8.self))
+                return nil
+            }
+        } catch {
+            print(error)
+            return nil
+        }
+    }
+
+    private func performDoesItPlayRequest(url: URL) async -> GCDoesItPlayResponse? {
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue(APIkey, forHTTPHeaderField: "Apikey")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            switch (response as? HTTPURLResponse)?.statusCode {
+            case 200:
+                return try JSONDecoder().decode(GCDoesItPlayResponse.self, from: data)
+            case 404:
+                return GCDoesItPlayResponse(results: [])
+            default:
+                return nil
+            }
+        } catch {
+            print(error)
+            return nil
+        }
+    }
+
     private func performPriceReadRequest(url: URL) async -> GCReleasePricesResponse? {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
